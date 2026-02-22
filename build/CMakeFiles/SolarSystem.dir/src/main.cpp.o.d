@@ -419,6 +419,8 @@ CMakeFiles/SolarSystem.dir/src/main.cpp.o: \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/sys/_types/_fsfilcnt_t.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/_types/_nl_item.h \
   /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__bsd_locale_defaults.h \
+  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/vector \
+  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__split_buffer \
   /Users/alexialozano/Documents/GitHub/SolarSystem/src/Shader.h \
   /usr/local/include/glm/glm.hpp \
   /usr/local/include/glm/detail/_fixes.hpp \
@@ -576,8 +578,6 @@ CMakeFiles/SolarSystem.dir/src/main.cpp.o: \
   /usr/local/include/glm/integer.hpp \
   /usr/local/include/glm/detail/func_integer.inl \
   /Users/alexialozano/Documents/GitHub/SolarSystem/src/Sphere.h \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/vector \
-  /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__split_buffer \
   /Users/alexialozano/Documents/GitHub/SolarSystem/src/Camera.h \
   /Users/alexialozano/Documents/GitHub/SolarSystem/src/Planet.h \
   /usr/local/include/glm/gtc/matrix_transform.hpp \
