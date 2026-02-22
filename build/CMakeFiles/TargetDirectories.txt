@@ -1,0 +1,3 @@
+/Users/alexialozano/Documents/GitHub/SolarSystem/build/CMakeFiles/SolarSystem.dir
+/Users/alexialozano/Documents/GitHub/SolarSystem/build/CMakeFiles/edit_cache.dir
+/Users/alexialozano/Documents/GitHub/SolarSystem/build/CMakeFiles/rebuild_cache.dir
