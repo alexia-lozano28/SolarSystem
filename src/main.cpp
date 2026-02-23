@@ -1,25 +1,50 @@
 #include <GLFW/glfw3.h>
 #include <OpenGL/gl3.h>
 #include <iostream>
+#include <vector>
+
 #include "Shader.h"
 #include "Sphere.h"
 #include "Camera.h"
 #include "Planet.h"
+
 #include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>  // Funciones como glm::rotate, glm::translate, glm::perspective
-#include <glm/gtc/type_ptr.hpp>  
-// Triángulo simple
-float vertices[] = {
-    0.0f,
-    0.5f,
-    0.0f,
-    -0.7f,
-    -0.7f,
-    0.1f,
-    0.5f,
-    -0.5f,
-    0.0f,
-};
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+int SCR_WIDTH = 1280;
+int SCR_HEIGHT = 720;
+
+// -------------------
+// Variables globales para el ratón
+// -------------------
+Camera camera(glm::vec3(0.0f, 0.0f, 20.0f));
+float lastX = SCR_WIDTH;
+float lastY = SCR_HEIGHT;
+bool firstMouse = true;
+
+// -------------------
+// Callback ratón
+// -------------------
+void mouse_callback(GLFWwindow *window, double xpos, double ypos)
+{
+    if (firstMouse)
+    {
+        lastX = xpos;
+        lastY = ypos;
+        firstMouse = false;
+    }
+
+    float xoffset = xpos - lastX;
+    float yoffset = lastY - ypos;
+
+    lastX = xpos;
+    lastY = ypos;
+
+    camera.processMouse(xoffset, yoffset);
+}
+
+// -------------------
 
 int main()
 {
@@ -33,7 +58,7 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow *window = glfwCreateWindow(800, 600, "Solar System", nullptr, nullptr);
+    GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Solar System", nullptr, nullptr);
     if (!window)
     {
         std::cerr << "Failed to create window\n";
@@ -43,66 +68,114 @@ int main()
 
     glfwMakeContextCurrent(window);
 
-    // Configurar viewport y depth test
-    int width, height;
-    glfwGetFramebufferSize(window, &width, &height);
-    glViewport(0, 0, width, height);
+    // Capturar ratón tipo FPS
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetCursorPosCallback(window, mouse_callback);
+
+    glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
     glEnable(GL_DEPTH_TEST);
 
-    // VBO + VAO
-    unsigned int VBO, VAO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
+    Shader shader("../shaders/planet.vert", "../shaders/planet.frag");
 
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    // ------------------- PLANETAS -------------------
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
-    glEnableVertexAttribArray(0);
+    struct PlanetData
+    {
+        float radius;
+        float orbitRadius;
+        float orbitSpeed;
+        float rotationSpeed;
+        const char *texture;
+    };
 
-    // Shader
-    Shader shader("../shaders/vertex.vert", "../shaders/fragment.frag");
+    std::vector<PlanetData> planetInfo = {
+        {0.2f, 4.0f, 0.05f, 0.5f, "../assets/textures/mercury.jpeg"},
+        {0.3f, 6.0f, 0.05f, 0.5f, "../assets/textures/venus.jpeg"},
+        {0.35f, 8.0f, 0.05f, 0.5f, "../assets/textures/earth.jpeg"},
+        {0.25f, 10.0f, 0.05f, 0.5f, "../assets/textures/mars.jpeg"},
+        {1.0f, 14.0f, 0.02f, 1.0f, "../assets/textures/jupiter.jpg"},
+        {0.8f, 18.0f, 0.015f, 1.0f, "../assets/textures/saturn.jpeg"},
+        {0.6f, 22.0f, 0.01f, 1.0f, "../assets/textures/uranus.jpeg"},
+        {0.6f, 26.0f, 0.008f, 1.0f, "../assets/textures/neptune.jpg"}};
 
-    // Charge the objects
-    Sphere sphere(1.0f, 36, 18);
-    Camera camera(
-        glm::vec3(0.0f, 0.0f, 3.0f), // posición
-        45.0f,                       // FOV
-        800.0f / 600.0f,             // aspect ratio
-        0.1f,                        // near
-        100.0f                       // far
-    );
-    //Solar system
-    Planet sun(1.0f, 0.0f, 0.0f, 0.5f, glm::vec3(1.0f, 1.0f, 0.0f));
-    Planet earth(0.3f, 3.0f, 0.5f, 1.0f, glm::vec3(0.0f, 0.3f, 1.0f));
-    
+    std::vector<Planet> solarSystem;
+    Planet sun(2.0f, 0.0f, 0.0f, 0.5f, "../assets/textures/sun.jpeg");
+    for (const auto &p : planetInfo)
+    {
+        solarSystem.emplace_back(
+            p.radius,
+            p.orbitRadius,
+            p.orbitSpeed,
+            p.rotationSpeed,
+            p.texture);
+    }
 
-    // Loop
+    float lastFrame = glfwGetTime();
+
+    // ------------------- LOOP -------------------
+
+    std::cout << "Pos: "
+              << camera.position.x << " "
+              << camera.position.y << " "
+              << camera.position.z << std::endl;
+
+    std::cout << "Front: "
+              << camera.front.x << " "
+              << camera.front.y << " "
+              << camera.front.z << std::endl;
+
     while (!glfwWindowShouldClose(window))
     {
-        float deltaTime = 0.005f;
-        // glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+        float currentFrame = glfwGetTime();
+        float deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
+
+        camera.processKeyboard(window, deltaTime);
+
+        if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+            glfwSetWindowShouldClose(window, true);
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
         shader.use();
+
+        // View
         glm::mat4 view = camera.getViewMatrix();
-        glm::mat4 projection = camera.getProjectionMatrix();
-        glm::mat4 model = glm::mat4(1.0f); // matriz identidad
-        // model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(0.0f, 1.0f, 0.0f));
+        // glm::mat4 view = glm::lookAt(
+        //     glm::vec3(0.0f, 0.0f, 30.0f),
+        //     glm::vec3(0.0f, 0.0f, 0.0f),
+        //     glm::vec3(0.0f, 1.0f, 0.0f));
+
+        // glm::mat4 projection = camera.getProjectionMatrix();
+        // Projection
+        int width, height;
+        glfwGetFramebufferSize(window, &width, &height);
+        glViewport(0, 0, width, height);
+
+        glm::mat4 projection = glm::perspective(
+            glm::radians(camera.fov),
+            (float)SCR_WIDTH / (float)SCR_HEIGHT,
+            0.1f,
+            5000.0f);
+        
+        glm::vec3 sunPosition(0.0f,0.0f,0.0f);
+        shader.setVec3("lightPos", sunPosition);
+        shader.setVec3("viewPos", camera.position);
         shader.setMat4("view", view);
         shader.setMat4("projection", projection);
-        shader.setMat4("model", model);
+        shader.setBool("isSun", true);
         sun.update(deltaTime);
-        earth.update(deltaTime);
-
         sun.draw(shader);
-        earth.draw(shader);
-        // sphere.draw();
+        shader.setBool("isSun", false);
+        // Dibujar planetas
+        for (auto &p : solarSystem)
+        {
+            p.update(deltaTime);
+            p.draw(shader);
+        }
 
         glfwSwapBuffers(window);
         glfwPollEvents();
-        
     }
 
     glfwTerminate();

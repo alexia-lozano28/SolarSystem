@@ -8,13 +8,14 @@
 class Planet
 {
 public:
-    Planet(float radius, float orbitRadius, float orbitSpeed, float rotationSpeed, glm::vec3 color);
-    Sphere sphere;
-    void draw(Shader& Shader);
-    void update(float timeDelta);
-    float currentOrbitAngle;
+    Planet(float radius, float orbitRadius, float orbitSpeed, float rotationSpeed, const char* texturePath ); // constructor
 
+    void draw(Shader& shader);
+    void update(float deltaTime);
+
+    float currentOrbitAngle;
     float currentRotationAngle;
+
 private:
     float radius;
     float orbitRadius;
@@ -22,6 +23,8 @@ private:
     float orbitSpeed;
     glm::vec3 color;
 
+    Sphere sphere;
+    unsigned int textureID;
 };
 
 #endif

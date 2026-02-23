@@ -2,17 +2,31 @@
 #define SPHERE_H
 
 #include <vector>
+#include <glm/glm.hpp>
 
-class Sphere {
+struct Vertex {
+    glm::vec3 Position;   // posición del vértice
+    glm::vec3 Normal;     // normal para iluminación
+    glm::vec2 TexCoords;  // coordenadas de textura
+};
+
+class Sphere
+{
 public:
-    unsigned int ID;
+    // Constructor: radio, segmentos de longitud y latitud
+    Sphere(float radius = 1.0f, unsigned int longitudeSegments = 36, unsigned int latitudeSegments = 18);
 
-    Sphere( float radius,int stacks, int sectors);
-    void draw();
+    // Dibujar la esfera
+    void draw() const;
 
 private:
-    unsigned int VAO, VBO, EBO;
-    unsigned int indexCount;
+    std::vector<Vertex> vertices;        // lista de vértices
+    std::vector<unsigned int> indices;   // lista de índices para glDrawElements
+
+    unsigned int VAO, VBO, EBO;          // OpenGL buffers
+
+    // Configura VAO, VBO, EBO
+    void setupSphere();
 };
 
 #endif
